@@ -1,52 +1,42 @@
 package main
 
 import (
-	"github.com/howeyc/fsnotify"
-	"io"
+	"./jekyll"
+	"./watcher"
+	"path/filepath"
 	"log"
-	"os"
-	"os/exec"
+	"strings"
 )
 
-func startServer() *exec.Cmd {
-	// Start jekyll server.
-	cmd := exec.Command("jekyll", "serve")
-	stdout, err := cmd.StdoutPipe()
-	if err != nil {
-		panic(err)
+func shouldIgnore(path string) (r bool) {
+	s := filepath.ToSlash(path)
+	if strings.HasPrefix(s, "_site/") {
+		r = true
 	}
-	stderr, err := cmd.StderrPipe()
-	if err != nil {
-		panic(err)
-	}
-	err = cmd.Start()
-	if err != nil {
-		panic(err)
-	}
-	go io.Copy(os.Stdout, stdout)
-	go io.Copy(os.Stderr, stderr)
-	return cmd
+	return
 }
 
 func main() {
-	serv_cmd := startServer()
-	watcher, err := fsnotify.NewWatcher()
+	// start jekyll serve
+	j := jekyll.NewJekyll()
+	err := j.Start()
 	if err != nil {
 		panic(err)
 	}
-
-	err = watcher.Watch(".")
+	// start watcher
+	w, err := watcher.NewWatcher(".", nil)
 	if err != nil {
 		panic(err)
 	}
-
+	// infinite loop
 	for {
 		select {
-		case ev := <-watcher.Event:
-			log.Println("event:", ev)
-		case err := <-watcher.Error:
-			panic(err)
+		case path := <-w.Path:
+			log.Println("path:", path)
+			if shouldIgnore(path) {
+				continue
+			}
+			// TODO: j.Build()
 		}
 	}
-	serv_cmd.Wait()
 }
