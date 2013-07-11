@@ -1,5 +1,12 @@
 # Jekyll Serve Watcher
 
+    $ jekyll serve --watch
+
+`--watch` option waste many CPU time, because it is implemented by stat()
+polling in each a second.
+
+**jsw** replaces it by golang.
+
 ## How to compile
 
     $ go get github.com/howeyc/fsnotify
