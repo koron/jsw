@@ -2,10 +2,12 @@ package main
 
 import (
 	"./jekyll"
+	"./timebuf"
 	"./watcher"
 	"path/filepath"
 	"log"
 	"strings"
+	"time"
 )
 
 func shouldIgnore(path string) (r bool) {
@@ -28,15 +30,25 @@ func main() {
 	if err != nil {
 		panic(err)
 	}
+	// prepare a timer to build
+	tb := timebuf.NewTimeBuffer(time.Duration(0.2 * 1000000000))
+
 	// infinite loop
-	for {
-		select {
-		case path := <-w.Path:
-			log.Println("path:", path)
-			if shouldIgnore(path) {
-				continue
+	c := make(chan bool, 1)
+	go func() {
+		for {
+			select {
+			case path := <-w.Path:
+				log.Println("path:", path)
+				if shouldIgnore(path) {
+					continue
+				}
+				tb.After()
+			case t := <-tb.C:
+				log.Println("rebuild at", t)
+				//j.Build()
 			}
-			// TODO: j.Build()
 		}
-	}
+	}()
+	<-c
 }
