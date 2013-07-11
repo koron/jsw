@@ -4,8 +4,8 @@ import (
 	"./jekyll"
 	"./timebuf"
 	"./watcher"
-	"path/filepath"
 	"log"
+	"path/filepath"
 	"strings"
 	"time"
 )
@@ -34,21 +34,20 @@ func main() {
 	tb := timebuf.NewTimeBuffer(time.Duration(0.2 * 1000000000))
 
 	// infinite loop
-	c := make(chan bool, 1)
-	go func() {
-		for {
-			select {
-			case path := <-w.Path:
-				log.Println("path:", path)
-				if shouldIgnore(path) {
-					continue
-				}
-				tb.After()
-			case t := <-tb.C:
-				log.Println("rebuild at", t)
-				//j.Build()
+	for {
+		select {
+		case path := <-w.Path:
+			//log.Println("path:", path)
+			if shouldIgnore(path) {
+				continue
 			}
+			tb.After()
+		case _ = <-w.Error:
+			//log.Println("warn:", err)
+		case _ = <-tb.C:
+			log.Println("rebuilding")
+			j.Build()
+			log.Println("rebuilded")
 		}
-	}()
-	<-c
+	}
 }
