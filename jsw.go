@@ -12,9 +12,13 @@ import (
 
 func shouldIgnore(path string) (r bool) {
 	s := filepath.ToSlash(path)
-	if strings.HasPrefix(s, "_site/") {
+	if strings.HasPrefix(s, "./") {
+		s = s[2:]
+	}
+	if strings.HasPrefix(s, "_site") || strings.HasPrefix(s, ".git") {
 		r = true
 	}
+	//log.Println("be ignored", s, r)
 	return
 }
 
@@ -26,7 +30,7 @@ func main() {
 		panic(err)
 	}
 	// start watcher
-	w, err := watcher.NewWatcher(".", nil)
+	w, err := watcher.NewWatcher(".", shouldIgnore)
 	if err != nil {
 		panic(err)
 	}
@@ -36,18 +40,13 @@ func main() {
 	// infinite loop
 	for {
 		select {
-		case path := <-w.Path:
-			//log.Println("path:", path)
-			if shouldIgnore(path) {
-				continue
-			}
+		case _ = <-w.Path:
 			tb.After()
-		case _ = <-w.Error:
-			//log.Println("warn:", err)
 		case _ = <-tb.C:
-			log.Println("rebuilding")
+			log.Println("build started")
 			j.Build()
-			log.Println("rebuilded")
+			log.Println("build finished")
+		case _ = <-w.Error:
 		}
 	}
 }
