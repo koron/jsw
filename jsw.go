@@ -5,6 +5,8 @@ import (
 	"./timebuf"
 	"./watcher"
 	"log"
+	"os"
+	"os/signal"
 	"path/filepath"
 	"strings"
 	"time"
@@ -34,13 +36,24 @@ func main() {
 	if err != nil {
 		panic(err)
 	}
+
+	// handle SIGINT
+	go func() {
+		sig := make(chan os.Signal, 1)
+		signal.Notify(sig, os.Interrupt)
+		<-sig
+		j.Stop()
+		os.Exit(0)
+	}()
+
 	// start watcher
 	w, err := watcher.NewWatcher(".", shouldIgnore)
 	if err != nil {
 		panic(err)
 	}
+
 	// prepare a timer to build
-	tb := timebuf.NewTimeBuffer(time.Duration(0.2 * 1000000000))
+	tb := timebuf.NewTimeBuffer(time.Duration(200 * time.Millisecond))
 
 	// infinite loop
 	m := make(map[string]int)
