@@ -21,7 +21,7 @@ polling in each a second.
 Install and upgrade.
 
 ```console
-$ go install github.com/koron/jwc@latest
+$ go install github.com/koron/jsw@latest
 ```
 
 ## Execute
