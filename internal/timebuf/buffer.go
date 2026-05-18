@@ -3,6 +3,7 @@
 package timebuf
 
 import (
+	"sync"
 	"time"
 )
 
@@ -12,6 +13,7 @@ import (
 type TimeBuffer struct {
 	C  chan time.Time
 	d  time.Duration
+	mu sync.Mutex
 	id int
 }
 
@@ -28,12 +30,18 @@ func NewTimeBuffer(d time.Duration) (b *TimeBuffer) {
 // After resets the debounce window. If no other call to After is made
 // within the configured duration, a timestamp is sent on C.
 func (b *TimeBuffer) After() {
+	b.mu.Lock()
 	b.id++
 	id := b.id
+	b.mu.Unlock()
 	go func(target int) {
 		time.Sleep(b.d)
+		b.mu.Lock()
 		if target == b.id {
+			b.mu.Unlock()
 			b.C <- time.Now()
+		} else {
+			b.mu.Unlock()
 		}
 	}(id)
 }
