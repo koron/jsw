@@ -6,8 +6,11 @@ import (
 	"time"
 )
 
+// TestBufer verifies the debounce timer: ten rapid calls within 10 ms
+// each should be coalesced into a single notification delivered after
+// the 200 ms window from the last call.
 func TestBufer(t *testing.T) {
-	b := NewTimeBuffer(time.Duration(0.2 * 1000000000))
+	b := NewTimeBuffer(200 * time.Millisecond)
 	c := make(chan bool, 1)
 	go func() {
 		t := <-b.C
@@ -18,7 +21,7 @@ func TestBufer(t *testing.T) {
 	go func() {
 		b.After()
 		for i := 0; i < 10; i++ {
-			time.Sleep(time.Duration(0.01 * 1000000000))
+			time.Sleep(10 * time.Millisecond)
 			b.After()
 		}
 	}()

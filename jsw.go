@@ -1,3 +1,5 @@
+// Command jsw starts `jekyll serve` then watches the project directory for
+// file changes and triggers `jekyll build` on a debounced schedule.
 package main
 
 import (
@@ -13,6 +15,8 @@ import (
 	"github.com/koron/jsw/internal/watcher"
 )
 
+// regulatePath normalizes a path: converts backslashes to slashes and strips
+// a leading "./".
 func regulatePath(path string) (r string) {
 	r = filepath.ToSlash(path)
 	if strings.HasPrefix(r, "./") {
@@ -21,15 +25,18 @@ func regulatePath(path string) (r string) {
 	return
 }
 
+// shouldIgnore returns true for paths under _site/ or .git/.
 func shouldIgnore(path string) (r bool) {
 	s := regulatePath(path)
 	if strings.HasPrefix(s, "_site") || strings.HasPrefix(s, ".git") {
 		r = true
 	}
-	//log.Printf("should ignored: path=%s ignore=%t", s, r)
 	return
 }
 
+// main starts jekyll serve, sets up a recursive file watcher with a 200 ms
+// debounce, and loops on change events to call jekyll build. SIGINT
+// gracefully stops the server.
 func main() {
 	// start jekyll serve
 	j := jekyll.NewJekyll()

@@ -5,6 +5,8 @@ import (
 	"testing"
 )
 
+// TestWatcher is a placeholder; skipped because it requires manual
+// inspection of live file events.
 func TestWatcher(t *testing.T) {
 	t.Skip("not implemented yet")
 	w, err := NewWatcher(".", nil)
