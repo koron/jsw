@@ -1,15 +1,16 @@
 package main
 
 import (
-	"./jekyll"
-	"./timebuf"
-	"./watcher"
 	"log"
 	"os"
 	"os/signal"
 	"path/filepath"
 	"strings"
 	"time"
+
+	"github.com/koron/jsw/internal/jekyll"
+	"github.com/koron/jsw/internal/timebuf"
+	"github.com/koron/jsw/internal/watcher"
 )
 
 func regulatePath(path string) (r string) {
@@ -25,7 +26,7 @@ func shouldIgnore(path string) (r bool) {
 	if strings.HasPrefix(s, "_site") || strings.HasPrefix(s, ".git") {
 		r = true
 	}
-	//log.Println("be ignored", s, r)
+	//log.Printf("should ignored: path=%s ignore=%t", s, r)
 	return
 }
 
