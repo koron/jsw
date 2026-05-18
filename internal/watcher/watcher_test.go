@@ -59,6 +59,10 @@ func TestCreateFile(t *testing.T) {
 func TestExcludedPath(t *testing.T) {
 	dir := t.TempDir()
 
+	t.Logf("dir=%s", dir)
+	dirAbs, _ := filepath.Abs(dir)
+	t.Logf("dirAbs=%s", dirAbs)
+
 	exclude := func(path string) bool {
 		return strings.HasPrefix(path, "_excluded")
 	}
@@ -74,6 +78,7 @@ func TestExcludedPath(t *testing.T) {
 	if err := os.MkdirAll(exDir, 0755); err != nil {
 		t.Fatal(err)
 	}
+	t.Logf("exDir=%s", exDir)
 
 	f, err := os.Create(filepath.Join(exDir, "ignored.txt"))
 	if err != nil {

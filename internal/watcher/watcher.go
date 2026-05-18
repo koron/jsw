@@ -4,6 +4,7 @@
 package watcher
 
 import (
+	"log"
 	"path/filepath"
 
 	"github.com/fswatcher/fswatcher"
@@ -49,6 +50,7 @@ func NewWatcher(root string, exclude ExcludeFunc) (w *Watcher, err error) {
 		for {
 			select {
 			case ev := <-watcher.Events:
+				log.Printf("ev.Name=%s\n", ev.Name)
 				name, err := filepath.Rel(rootabs, ev.Name)
 				if err != nil {
 					w.Error <- err
