@@ -1,4 +1,8 @@
+*~
+default.pgo
+tags
+tmp/
+
 _site
 jsw
 jsw.exe
-tags

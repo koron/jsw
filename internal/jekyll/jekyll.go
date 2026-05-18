@@ -35,7 +35,7 @@ func startCmd(cmd *exec.Cmd) (err error) {
 	return
 }
 
-func (j *Jekyll) Start() (err error) {
+func (j *Jekyll) startRubyJekyll() (err error) {
 	if j.serverCmd != nil {
 		return errors.New("jekyll serve is running already.")
 	}
@@ -46,6 +46,10 @@ func (j *Jekyll) Start() (err error) {
 	}
 	j.serverCmd = cmd
 	return
+}
+
+func (j *Jekyll) Start() (err error) {
+	return j.startRubyJekyll()
 }
 
 func (j *Jekyll) Stop() {
