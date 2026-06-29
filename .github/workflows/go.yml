@@ -115,7 +115,7 @@ jobs:
 
     - name: Start FreeBSD VM
       if: matrix.os == 'freebsd'
-      uses: vmactions/freebsd-vm@d1e65811565151536c0c894fff74f06351ed26e6 # v1.4.5
+      uses: vmactions/freebsd-vm@5a72679103d223925653750faa878a143340fbd0 # v1.5.0
       with:
         usesh: true
         copyback: false
