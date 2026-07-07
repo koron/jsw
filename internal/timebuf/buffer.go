@@ -1,15 +1,24 @@
+// Package timebuf provides a debounce timer that coalesces rapid
+// consecutive events into a single notification after a quiet period.
 package timebuf
 
 import (
+	"sync"
 	"time"
 )
 
+// TimeBuffer is a debounce timer. Each call to After resets the window;
+// the channel C receives a value once no new calls arrive within the
+// configured duration.
 type TimeBuffer struct {
 	C  chan time.Time
 	d  time.Duration
+	mu sync.Mutex
 	id int
 }
 
+// NewTimeBuffer creates a TimeBuffer with the given debounce duration d.
+// The returned channel C delivers one time.Time per debounced batch.
 func NewTimeBuffer(d time.Duration) (b *TimeBuffer) {
 	b = &TimeBuffer{
 		C: make(chan time.Time, 0),
@@ -18,13 +27,21 @@ func NewTimeBuffer(d time.Duration) (b *TimeBuffer) {
 	return
 }
 
+// After resets the debounce window. If no other call to After is made
+// within the configured duration, a timestamp is sent on C.
 func (b *TimeBuffer) After() {
+	b.mu.Lock()
 	b.id++
 	id := b.id
+	b.mu.Unlock()
 	go func(target int) {
 		time.Sleep(b.d)
+		b.mu.Lock()
 		if target == b.id {
+			b.mu.Unlock()
 			b.C <- time.Now()
+		} else {
+			b.mu.Unlock()
 		}
 	}(id)
 }
