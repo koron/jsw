@@ -4,7 +4,6 @@
 package watcher
 
 import (
-	"log"
 	"path/filepath"
 
 	"github.com/fswatcher/fswatcher"
@@ -33,16 +32,22 @@ func NewWatcher(root string, exclude ExcludeFunc) (w *Watcher, err error) {
 	if exclude == nil {
 		exclude = noExclude
 	}
+
 	rootabs, err := filepath.Abs(root)
 	if err != nil {
 		return nil, err
 	}
+	resolved, err := filepath.EvalSymlinks(rootabs)
+	if err != nil {
+		return nil, err
+	}
+	regulatedRoot := resolved
 
 	watcher, err := fswatcher.NewWatcher()
 	if err != nil {
 		return nil, err
 	}
-	watcher.AddRecursive(rootabs, fswatcher.All)
+	watcher.AddRecursive(regulatedRoot, fswatcher.All)
 
 	w = &Watcher{watcher, make(chan string), make(chan error)}
 
@@ -50,8 +55,7 @@ func NewWatcher(root string, exclude ExcludeFunc) (w *Watcher, err error) {
 		for {
 			select {
 			case ev := <-watcher.Events:
-				log.Printf("ev.Name=%s\n", ev.Name)
-				name, err := filepath.Rel(rootabs, ev.Name)
+				name, err := filepath.Rel(regulatedRoot, ev.Name)
 				if err != nil {
 					w.Error <- err
 					break
